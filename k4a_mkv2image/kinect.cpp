@@ -135,7 +135,7 @@ void kinect::initialize_save()
     // Create Sub Directory for Each Images (Image Name)
     std::vector<std::string> names;
     if( record_configuration.color_track_enabled ){
-        names.push_back( "color" );
+        names.push_back( "rgb" );
         is_color = true;
     }
     if( record_configuration.depth_track_enabled ){
@@ -209,7 +209,7 @@ void kinect::export_color()
         }
 
         // Write JPEG (e.g. ./<mkv_name>/color/000000_<timestamp>.jpg, ...)
-        std::ofstream ofs( cv::format( "%s/color/%06d_%011d.jpg", directory.generic_string().c_str(), index++, data.second ), std::ios::binary );
+        std::ofstream ofs( cv::format( "%s/rgb/%06d_%011d.jpg", directory.generic_string().c_str(), index++, data.second ), std::ios::binary );
         ofs.write( reinterpret_cast<char*>( &data.first[0] ), data.first.size() * sizeof( decltype( data.first )::value_type ) );
     }
 }
@@ -235,7 +235,7 @@ void kinect::export_depth()
         // Write PNG (e.g. ./<mkv_name>/depth/000000_<timestamp>.png, ...)
         cv::Mat depth = cv::Mat( height, width, CV_16UC1, reinterpret_cast<uint16_t*>( &data.first[0] ) );
         if( is_scaling ){
-            depth.convertTo( depth, CV_8U, -255.0 / 5000.0, 255.0 );
+            depth.convertTo( depth, CV_8U, 1.0 / 256.0, 0 );
         }
         cv::imwrite( cv::format( "%s/depth/%06d_%011d.png", directory.generic_string().c_str(), index++, data.second ), depth );
     }
@@ -510,7 +510,7 @@ inline void kinect::show_color()
     }
 
     // Show Image
-    const cv::String window_name = cv::format( "color" );
+    const cv::String window_name = cv::format( "rgb" );
     cv::imshow( window_name, color );
 }
 
@@ -522,7 +522,7 @@ inline void kinect::show_depth()
     }
 
     // Scaling Depth
-    depth.convertTo( depth, CV_8U, -255.0 / 5000.0, 255.0 );
+    depth.convertTo( depth, CV_8U, 1.0 / 256.0, 0 );
 
     // Show Image
     const cv::String window_name = cv::format( "depth" );
@@ -552,7 +552,7 @@ inline void kinect::show_transformation()
     }
 
     // Scaling Depth
-    transformed_depth.convertTo( transformed_depth, CV_8U, -255.0 / 5000.0, 255.0 );
+    transformed_depth.convertTo( transformed_depth, CV_8U, 1.0 / 256.0, 0 );
 
     // Show Image
     const cv::String window_name = cv::format( "transformed depth" );
