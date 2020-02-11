@@ -3,6 +3,19 @@ k4a_mkv2image
 This is convert tool that works on cross-platform (Windows, Linux) for Azure Kinect.  
 This tool converts all data of each stream types (Color, Depth, Infrared) that contained in mkv file to image file.  
 
+Modifications
+-------------
+The project has been adapted to work with [ETH3D/badslam](https://github.com/ETH3D/badslam) and the exported datasets should now be compatible with the [ETH SLAM Datasets](https://www.eth3d.net/slam_datasets) format.
+The directory for color images is called "rgb" instead of "color" and text files for rgb, depth and calibration have been added.
+To prepare datasets for badslam use the following commands:
+
+```
+k4arecorder -c 720p -r 30 my_file.mkv												# starts recording until ctrl+c is pressed
+k4a_mkv2image -i="my_file.mkv" -t=true -s=false -d=true                         	# creates a directory "my_file" with depth/rgb files.
+python associate.py my_file/rgb.txt my_file/depth.txt > my_file/associated.txt		# associates rgb and depth frames. The python script can be found in the badslam docs
+```
+Then run badslam on the dataset. You might have to tune some settings like: "Maximum depth to use" -> 5, "Use photometric residuals" -> off (?), "Keyframe interval" -> lower a bit (but not too low!), 
+
 Sample
 ------
 ### Command
@@ -18,7 +31,7 @@ The unit of device timestamp is microseconds.
 k4a_mkv2image.exe
 file.mkv
 file
-  |-color
+  |-rgb
   |   |-000000_00000000000.jpg
   |   |-000001_00000000033.jpg
   |   |-000002_00000000066.jpg
@@ -29,9 +42,12 @@ file
   |   |-000002_00000000066.png
   |
   |-infrared
-      |-000000_00000000000.jpg
-      |-000001_00000000033.jpg
-      |-000002_00000000066.jpg
+  |   |-000000_00000000000.jpg
+  |   |-000001_00000000033.jpg
+  |   |-000002_00000000066.jpg
+  |-rgb.txt
+  |-depth.txt
+  |-calibration.txt
 ```
 
 Option
