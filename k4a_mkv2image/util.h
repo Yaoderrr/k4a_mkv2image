@@ -37,7 +37,7 @@
 
 namespace k4a
 {
-    cv::Mat get_mat( k4a::image& src, bool deep_copy = true )
+    cv::Mat get_mat(const k4a::image& src, bool deep_copy = true )
     {
         assert( src.get_size() != 0 );
 
@@ -58,38 +58,38 @@ namespace k4a
             }
             case k4a_image_format_t::K4A_IMAGE_FORMAT_COLOR_NV12:
             {
-                cv::Mat nv12 = cv::Mat( height + height / 2, width, CV_8UC1, src.get_buffer() ).clone();
+                cv::Mat nv12 = cv::Mat( height + height / 2, width, CV_8UC1, (void*)src.get_buffer() ).clone();
                 cv::cvtColor( nv12, mat, cv::COLOR_YUV2BGRA_NV12 );
                 break;
             }
             case k4a_image_format_t::K4A_IMAGE_FORMAT_COLOR_YUY2:
             {
-                cv::Mat yuy2 = cv::Mat( height, width, CV_8UC2, src.get_buffer() ).clone();
+                cv::Mat yuy2 = cv::Mat( height, width, CV_8UC2, (void*)src.get_buffer() ).clone();
                 cv::cvtColor( yuy2, mat, cv::COLOR_YUV2BGRA_YUY2 );
                 break;
             }
             case k4a_image_format_t::K4A_IMAGE_FORMAT_COLOR_BGRA32:
             {
-                mat = deep_copy ? cv::Mat( height, width, CV_8UC4, src.get_buffer() ).clone()
-                                : cv::Mat( height, width, CV_8UC4, src.get_buffer() );
+                mat = deep_copy ? cv::Mat( height, width, CV_8UC4, (void*)src.get_buffer() ).clone()
+                                : cv::Mat( height, width, CV_8UC4, (void*)src.get_buffer() );
                 break;
             }
             case k4a_image_format_t::K4A_IMAGE_FORMAT_DEPTH16:
             case k4a_image_format_t::K4A_IMAGE_FORMAT_IR16:
             {
-                mat = deep_copy ? cv::Mat( height, width, CV_16UC1, reinterpret_cast<uint16_t*>( src.get_buffer() ) ).clone()
-                                : cv::Mat( height, width, CV_16UC1, reinterpret_cast<uint16_t*>( src.get_buffer() ) );
+                mat = deep_copy ? cv::Mat( height, width, CV_16UC1, reinterpret_cast<uint16_t*>((void*)src.get_buffer() ) ).clone()
+                                : cv::Mat( height, width, CV_16UC1, reinterpret_cast<uint16_t*>((void*)src.get_buffer() ) );
                 break;
             }
             case k4a_image_format_t::K4A_IMAGE_FORMAT_CUSTOM8:
             {
-                mat = cv::Mat( height, width, CV_8UC1, src.get_buffer() ).clone();
+                mat = cv::Mat( height, width, CV_8UC1, (void*)src.get_buffer() ).clone();
                 break;
             }
             case k4a_image_format_t::K4A_IMAGE_FORMAT_CUSTOM:
             {
                 // NOTE: This is opencv_viz module format (cv::viz::WCloud).
-                const int16_t* buffer = reinterpret_cast<int16_t*>( src.get_buffer() );
+                const int16_t* buffer = reinterpret_cast<int16_t*>((void*)src.get_buffer() );
                 mat = cv::Mat( height, width, CV_32FC3, cv::Vec3f::all( std::numeric_limits<float>::quiet_NaN() ) );
                 mat.forEach<cv::Vec3f>(
                     [&]( cv::Vec3f& point, const int32_t* position ){
