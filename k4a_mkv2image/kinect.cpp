@@ -189,6 +189,9 @@ void kinect::finalize()
 
     // Close Window
     cv::destroyAllWindows();
+
+    rgb_file.close();
+    depth_file.close();
 }
 
 // Export Color
@@ -209,8 +212,11 @@ void kinect::export_color()
         }
 
         // Write JPEG (e.g. ./<mkv_name>/color/000000_<timestamp>.jpg, ...)
-        std::ofstream ofs( cv::format( "%s/rgb/%06d_%011d.jpg", directory.generic_string().c_str(), index++, data.second ), std::ios::binary );
+        std::ofstream ofs( cv::format( "%s/rgb/%06d_%011d.jpg", directory.generic_string().c_str(), index, data.second ), std::ios::binary );
         ofs.write( reinterpret_cast<char*>( &data.first[0] ), data.first.size() * sizeof( decltype( data.first )::value_type ) );
+        rgb_file << cv::format("%g", data.second / 1000.0 / 1000.0) << " " << cv::format("rgb/%06d_%011d.jpg", index, data.second) << "\n";
+        rgb_file.flush();
+        index++;
     }
 }
 
@@ -237,7 +243,10 @@ void kinect::export_depth()
         if( is_scaling ){
             depth.convertTo( depth, CV_8U, 1.0 / 256.0, 0 );
         }
-        cv::imwrite( cv::format( "%s/depth/%06d_%011d.png", directory.generic_string().c_str(), index++, data.second ), depth );
+        cv::imwrite(cv::format("%s/depth/%06d_%011d.png", directory.generic_string().c_str(), index, data.second), depth );
+        depth_file << cv::format("%g", data.second / 1000.0 / 1000.0) << " " << cv::format("depth/%06d_%011d.png", index, data.second) << "\n";
+        depth_file.flush();
+        index++;
     }
 }
 
@@ -269,6 +278,9 @@ void kinect::export_infrared()
 // Run
 void kinect::run()
 {
+    rgb_file.open(cv::format("%s/rgb.txt", directory.generic_string().c_str()));
+    depth_file.open(cv::format("%s/depth.txt", directory.generic_string().c_str()));
+
     // Main Loop
     while( true ){
         // Update

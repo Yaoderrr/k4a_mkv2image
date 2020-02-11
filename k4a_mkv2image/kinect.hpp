@@ -14,6 +14,8 @@ namespace concurrency = tbb;
 
 #include <thread>
 #include <atomic>
+#include <iostream>
+#include <fstream>
 
 #if __has_include(<filesystem>)
 #include <filesystem>
@@ -74,6 +76,9 @@ private:
     bool is_scaling;
     bool is_transform;
     bool is_show;
+
+    std::ofstream rgb_file;
+    std::ofstream depth_file;
 
 public:
     // Constructor
