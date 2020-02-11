@@ -79,6 +79,7 @@ private:
 
     std::ofstream rgb_file;
     std::ofstream depth_file;
+    std::ofstream calibration_file;
 
 public:
     // Constructor

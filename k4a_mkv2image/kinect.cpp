@@ -24,6 +24,8 @@ kinect::~kinect()
 // Initialize
 void kinect::initialize( int argc, char* argv[] )
 {
+   
+
     // Initialize Parameter
     initialize_parameter( argc, argv );
 
@@ -103,6 +105,63 @@ void kinect::initialize_parameter( int argc, char* argv[] )
     }
 }
 
+void print_extrinsic(k4a_calibration_extrinsics_t* extrinsics) {
+    printf("R:\n");
+    printf(" \
+%.10f %.10f %.10f\n \
+%.10f %.10f %.10f\n \
+%.10f %.10f %.10f\n",
+extrinsics->rotation[0],
+extrinsics->rotation[1],
+extrinsics->rotation[2],
+extrinsics->rotation[3],
+extrinsics->rotation[4],
+extrinsics->rotation[5],
+extrinsics->rotation[6],
+extrinsics->rotation[7],
+extrinsics->rotation[8]);
+    printf("t:\n");
+    printf(
+        "%.10f %.10f %.10f\n",
+        extrinsics->translation[0],
+        extrinsics->translation[1],
+        extrinsics->translation[2]);
+}
+
+static void print_calibration(k4a_calibration_camera_t* calibration) {
+    printf("intrinsic parameters: \n");
+    printf("resolution width: %d\n", calibration->resolution_width);
+    printf("resolution height: %d\n", calibration->resolution_height);
+    printf("principal point x: %.10f\n", calibration->intrinsics.parameters.param.cx);
+    printf("principal point y: %.10f\n", calibration->intrinsics.parameters.param.cy);
+    printf("focal length x: %.10f\n", calibration->intrinsics.parameters.param.fx);
+    printf("focal length y: %.10f\n", calibration->intrinsics.parameters.param.fy);
+    printf("K:\n");
+    printf(" \
+%.10f 0 %.10f\n \
+0 %.10f %.10f\n \
+0 0 1\n",
+calibration->intrinsics.parameters.param.fx,
+calibration->intrinsics.parameters.param.cx,
+calibration->intrinsics.parameters.param.fy,
+calibration->intrinsics.parameters.param.cy);
+    printf("radial distortion coefficients:\n");
+    printf("k1: %.10f\n", calibration->intrinsics.parameters.param.k1);
+    printf("k2: %.10f\n", calibration->intrinsics.parameters.param.k2);
+    printf("k3: %.10f\n", calibration->intrinsics.parameters.param.k3);
+    printf("k4: %.10f\n", calibration->intrinsics.parameters.param.k4);
+    printf("k5: %.10f\n", calibration->intrinsics.parameters.param.k5);
+    printf("k6: %.10f\n", calibration->intrinsics.parameters.param.k6);
+    printf("center of distortion in Z=1 plane, x: %.10f\n", calibration->intrinsics.parameters.param.codx);
+    printf("center of distortion in Z=1 plane, y: %.10f\n", calibration->intrinsics.parameters.param.cody);
+    printf("tangential distortion coefficient x: %.10f\n", calibration->intrinsics.parameters.param.p1);
+    printf("tangential distortion coefficient y: %.10f\n", calibration->intrinsics.parameters.param.p2);
+    printf("metric radius: %.10f\n", calibration->intrinsics.parameters.param.metric_radius);
+    printf("extrinsic parameters: \n");
+    print_extrinsic(&calibration->extrinsics);
+    printf("\n");
+}
+
 // Initialize Playback
 inline void kinect::initialize_playback()
 {
@@ -131,6 +190,16 @@ void kinect::initialize_save()
     if( !filesystem::create_directories( directory ) ){
         throw std::runtime_error( "failed can't create root directory" );
     }
+
+    rgb_file.open(cv::format("%s/rgb.txt", directory.generic_string().c_str()));
+    depth_file.open(cv::format("%s/depth.txt", directory.generic_string().c_str()));
+    calibration_file.open(cv::format("%s/calibration.txt", directory.generic_string().c_str()));
+
+    k4a_calibration_intrinsic_parameters_t::_param param = calibration.color_camera_calibration.intrinsics.parameters.param;
+    print_calibration(&calibration.color_camera_calibration);
+    print_calibration(&calibration.depth_camera_calibration);
+    calibration_file << param.fx << " " << param.fy << " " << (param.cx + 0.5f) << " " << (param.cy + 0.5f) << "\n";
+    calibration_file.close();
 
     // Create Sub Directory for Each Images (Image Name)
     std::vector<std::string> names;
@@ -278,9 +347,6 @@ void kinect::export_infrared()
 // Run
 void kinect::run()
 {
-    rgb_file.open(cv::format("%s/rgb.txt", directory.generic_string().c_str()));
-    depth_file.open(cv::format("%s/depth.txt", directory.generic_string().c_str()));
-
     // Main Loop
     while( true ){
         // Update
