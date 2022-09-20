@@ -186,7 +186,7 @@ inline void kinect::initialize_playback()
 void kinect::initialize_save()
 {
     // Create Root Directory (MKV File Name)
-    directory = mkv_file.parent_path().generic_string() + "/" + mkv_file.stem().string();
+    directory = mkv_file.parent_path().generic_string() + mkv_file.stem().string();
     if( !filesystem::create_directories( directory ) ){
         throw std::runtime_error( "failed can't create root directory" );
     }
